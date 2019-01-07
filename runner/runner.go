@@ -30,12 +30,11 @@ var ErrTimeOut = errors.New("received timeout")
 // ErrInterrupt 接收到OS的事件時返回
 var ErrInterrupt = errors.New("received interrupt")
 
-// New 返回一個Runner實例,設定 d 時間內完成任務
-func New(d time.Duration) *Runner {
+// New 返回一個Runner實例
+func New() *Runner {
 	return &Runner{
 		interrupt: make(chan os.Signal, 1),
 		complete:  make(chan error),
-		timeout:   time.After(d),
 	}
 }
 
@@ -44,20 +43,22 @@ func (r *Runner) Add(task ...func()) {
 	r.tasks = append(r.tasks, task...)
 }
 
-// Start 執行Runner實例的任務
-func (r *Runner) Start() error {
+// Start 執行Runner實例的任務,設定 d 時間內完成任務
+func (r *Runner) Start(d time.Duration) error {
 	// 接收os的中斷訊號,傳送到該chan
 	signal.Notify(r.interrupt, os.Interrupt)
 
 	go func(){
-		r.complete <- r.run()
+		r.complete <- r.run(d)
 	}()
 
 	err := <-r.complete
 	return err
 }
 
-func (r *Runner) run() error {
+func (r *Runner) run(d time.Duration) error {
+	r.timeout=time.After(d)
+	
 	for _,task := range r.tasks{
 		select{
 		case <- r.interrupt:

@@ -1,6 +1,6 @@
 package main
 
-import(
+import (
 	"log"
 	"os"
 	"time"
@@ -8,17 +8,18 @@ import(
 	"github.com/Min-Feng/concurrencyPractice/runner"
 )
 
-const timeout = 3* time.Second
+const timeout = 5 * time.Second
 
-func main () {
+func main() {
 	log.Println("starting work")
 
-	r:= runner.New(timeout)
+	r := runner.New()
 
-	r.Add(createTask(),createTask(),createTask())
+	f := createTask()
+	r.Add(f, f, f)
 
-	if err:=r.Start(); err != nil{
-		switch err{
+	if err := r.Start(timeout); err != nil {
+		switch err {
 		case runner.ErrTimeOut:
 			log.Println(err)
 			os.Exit(1)
@@ -28,16 +29,13 @@ func main () {
 		}
 	}
 
-	f:=createTask()
-	f()
-	f()
 }
 
 func createTask() func() {
 	var id int
-	id++
-	return func(){
-		log.Printf("processor Task #%d\n",id)
+	return func() {
+		id++
+		log.Printf("processor Task #%d\n", id)
 		time.Sleep(time.Duration(id) * time.Second)
 	}
 }
