@@ -47,26 +47,30 @@ func (r *Runner) Add(task ...func()) {
 func (r *Runner) Start(d time.Duration) error {
 	// 接收os的中斷訊號,傳送到該chan
 	signal.Notify(r.interrupt, os.Interrupt)
-
-	go func(){
-		r.complete <- r.run(d)
+	r.timeout = time.After(d)
+	go func() {
+		//因為會先執行main gorountine,timeout變數還是舊的,因此永遠不會接收到終止訊號
+		//儘量將time.After的發送和接收處於同一個goroutine
+		//r.timeout = time.After(d)  
+		r.complete <- r.run()
 	}()
 
-	err := <-r.complete
-	return err
+	select {
+	case err := <-r.complete:
+		return err
+	case <-r.timeout: // 無論任務是否進行中,只要時間超過,就結束
+		return ErrTimeOut
+	}
+
 }
 
-func (r *Runner) run(d time.Duration) error {
-	r.timeout=time.After(d)
-	
-	for _,task := range r.tasks{
-		select{
-		case <- r.interrupt:
-			// 停止接收後續的OS信號
+func (r *Runner) run() error {
+	for _, task := range r.tasks {
+		select {
+		case <-r.interrupt:
+			// 停止接收後續的OS信號,只有在每個任務的間距,才會執行中斷動作
 			signal.Stop(r.interrupt)
 			return ErrInterrupt
-		case <-r.timeout:
-			return ErrTimeOut
 		default:
 			task()
 		}

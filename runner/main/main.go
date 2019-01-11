@@ -8,7 +8,7 @@ import (
 	"github.com/Min-Feng/concurrencyPractice/runner"
 )
 
-const timeout = 5 * time.Second
+const timeout = 3 * time.Second
 
 func main() {
 	log.Println("starting work")
@@ -28,7 +28,7 @@ func main() {
 			os.Exit(2)
 		}
 	}
-
+	log.Println("tasks finish")
 }
 
 func createTask() func() {
