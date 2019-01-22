@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Min-Feng/concurrencyPractice/runner"
+	"github.com/Min-Feng/Channel_Application/runner"
 )
 
 const timeout = 3 * time.Second
