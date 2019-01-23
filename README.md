@@ -10,7 +10,16 @@
 
 ## [golimit](golimit/golimit.go)
 控制goroutine的數量在指定的範圍內,數量太多,會有問題  
-例如系統資源耗盡導致panic，或者CPU使用率過高
+例如系統資源耗盡導致panic，或者CPU使用率過高  
+使用**有緩衝**的channel的方式實現  
+內部沒有gorountine leaking的問題
+
+## [work](work/work.go)
+控制goroutine的數量在指定的範圍內,功能如同golimit  
+使用**無緩衝**的channel來實現,需要另外開work goroutine執行Task   
+由於內部另外開work goroutine,所以使用完work Pool必須關閉Close()  
+不然內部會有gorountine leaking的問題  
+Close()方法,直到所有工作都完成才會返回
 
 ## [constantNumCall](constantNumCall/main.go)
 練習某一個函數最多只能被多少人使用,原理類似 golimit

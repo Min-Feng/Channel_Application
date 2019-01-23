@@ -10,20 +10,22 @@ import (
 var counter int
 
 func work(i int) {
-	log.Println("conter=",i)
+	//log.Println("conter=",i)
 	time.Sleep(time.Second)
 }
 
 func main(){
-	limiter:= golimit.New(500)
+	maxGoroutine := 500
+	limiter:= golimit.New(maxGoroutine)
 
 	t1:=time.Now()
-	for i:=0 ; i < 1000 ; i++{
-		limiter.Add()
-		go func(i int){
-			work(i)
+	for i:=0 ; i < 10000 ; i++{
+		limiter.Add()  // 若goroutine數量超過限制,阻塞發生在Add
+		taskID := i
+		go func(){
+			work(taskID)
 			limiter.Done()
-		}(i)
+		}()
 	}
 	limiter.Wait()
 	t2:=time.Since(t1)
